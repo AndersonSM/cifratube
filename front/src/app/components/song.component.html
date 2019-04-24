@@ -1,0 +1,49 @@
+<!--The content below is only a placeholder and can be replaced.-->
+<div style="text-align:center">
+  <h1>
+    {{ videoTitle ? videoTitle : ''}}
+  </h1>
+</div>
+<div>
+  <input [(ngModel)]="videoId">
+  <button (click)="reset()">OK</button>
+</div>
+<div class="bar-wrap">
+  <div class="content-bar" #contentBar>
+    <div class="center-indicator"></div>
+    <div class="content-marker" *ngFor="let marker of visibleMarkers" (click)="goTo(marker.time, $event); $event.stopPropagation()"
+         [ngStyle]="{left: marker.position+'px'}">
+      <div [ngStyle]="{'font-size': marker.size+'rem'}">{{ marker.note }}</div>
+    </div>
+  </div>
+</div>
+<div class="timeline-wrap">
+  <div class="timeline" #timeline (click)="goTo(null, $event)">
+    <div class="current-time-indicator" #currentTime></div>
+    <div class="marker" *ngFor="let markerTime of markersSet" (click)="goTo(markerTime, $event); $event.stopPropagation()"
+         [ngStyle]="{left: getMarkerTimelinePosition(markerTime)+'px', 'border-color': markerTime === selectedMarkerTime ? 'darkblue' : 'red'}"></div>
+  </div>
+</div>
+<div style="width: 100%">
+  <youtube-player
+    [videoId]="videoId"
+    (ready)="onPlayerReady($event)"
+    (change)="onStateChange($event)"
+  ></youtube-player>
+</div>
+<div>
+  <button type="button" (click)="saveMarker()">{{ hasMarker ? 'Save marker' : 'Add marker' }}</button>
+  <button type="button" (click)="goToPreviousMarker()">Previous marker <-</button>
+  <button type="button" (click)="goToNextMarker()">Next marker -></button>
+  <button type="button" (click)="deleteMarker()" [disabled]="!selectedMarkerTime">X</button>
+  <button type="button" (click)="saveFile()">Save file</button>
+  <input type="file" placeholder="Load file" (change)="loadFile($event)">
+</div>
+<div>
+  <label for="descInput">Desc</label>
+  <input type="text" id="descInput" placeholder="Description" [(ngModel)]="marker.description"/>
+  <label for="noteInput">Note</label>
+  <input type="text" id="noteInput" placeholder="Note" [(ngModel)]="marker.note"/>
+</div>
+
+<router-outlet></router-outlet>

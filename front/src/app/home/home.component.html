@@ -1,0 +1,9 @@
+﻿<div *ngIf="currentUser">
+  <h1>Hi {{currentUser.name}}!</h1>
+</div>
+<h3>Most recent songs:</h3>
+<ul>
+  <li *ngFor="let song of songs">
+    <a routerLink="/songs/{{song._id}}">{{song.title}} - {{song.artist}}</a>
+  </li>
+</ul>
