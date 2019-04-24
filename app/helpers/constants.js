@@ -3,8 +3,7 @@
  */
 
 module.exports = {
-    // TODO: change prd url
-    'database': process.env.environment === 'production' ? 'prd url' :
+    'database': process.env.ENVIRONMENT === 'production' ? process.env.DB_CONNECTION_STRING :
         'mongodb://localhost:27017/tcc'
 };
 

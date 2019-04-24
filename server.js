@@ -14,7 +14,7 @@ app.use(cors());
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '/front/dist/tcc')));
 
 app.set('port', process.env.PORT || 8080);
 
@@ -25,7 +25,6 @@ const server = app.listen(app.get('port'), function ()  {
 app.use('/api', routesAPI);
 
 // TODO: change to front
-app.get('/', function (req, res) { res.render('index'); });
-app.get('*', function (req, res) { res.sendfile('./front/dist/index.html'); });
+app.get('/*', function (req, res) { res.sendfile(`./front/dist/tcc/index.html`); });
 
 module.exports = app;
