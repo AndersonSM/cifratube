@@ -134,7 +134,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
 
   openPopover(time) {
     this.closeAllPopovers();
-    if (this.song.markers[time]) { this.song.markers[time].popover.open(); }
+    if (this.song.markers[time] && this.canEdit) { this.song.markers[time].popover.open(); }
   }
 
   saveMarker() {
