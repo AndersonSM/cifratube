@@ -41,5 +41,6 @@ export class AuthenticationService {
     localStorage.removeItem('currentUser');
     localStorage.removeItem('token');
     this.currentUserSubject.next(null);
+    this.currentUserToken = null;
   }
 }
