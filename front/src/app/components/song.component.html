@@ -41,6 +41,14 @@
       </div>
     </div>
   </div>
+  <div class="btn-group" role="group">
+    <button type="button" class="btn btn-dark" (click)="saveMarker()">
+      <span class="fas fa-map-pin"></span> {{ hasMarker ? 'Save marker' : 'Add marker' }}</button>
+    <button type="button" class="btn btn-dark" (click)="goToPreviousMarker()"><span class="fas fa-angle-left"></span> Previous marker</button>
+    <button type="button" class="btn btn-dark" (click)="goToNextMarker()">Next marker <span class="fas fa-angle-right"></span></button>
+    <button type="button" class="btn btn-danger" (click)="deleteMarker()" [disabled]="!selectedMarkerTime"><span class="fas fa-trash"></span></button>
+    <button type="button" class="btn btn-warning" (click)="saveSong()"><span class="fa fa-save"></span> Save</button>
+  </div>
   <div class="timeline-wrap">
     <div class="timeline" #timeline (click)="goTo(null, $event)">
       <div class="current-time-indicator" #currentTime></div>
@@ -78,13 +86,5 @@
       (ready)="onPlayerReady($event)"
       (change)="onStateChange($event)"
     ></youtube-player>
-  </div>
-  <div>
-    <button type="button" (click)="saveMarker()">{{ hasMarker ? 'Save marker' : 'Add marker' }}</button>
-    <button type="button" (click)="goToPreviousMarker()">Previous marker <-</button>
-    <button type="button" (click)="goToNextMarker()">Next marker -></button>
-    <button type="button" (click)="deleteMarker()" [disabled]="!selectedMarkerTime">X</button>
-    <button type="button" (click)="saveFile()">Save file</button>
-    <input type="file" placeholder="Load file" (change)="loadFile($event)">
   </div>
 </div>

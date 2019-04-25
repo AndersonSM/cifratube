@@ -15,6 +15,7 @@ export class AuthenticationService {
   constructor(private http: HttpClient) {
     this.currentUserSubject = new BehaviorSubject<User>(JSON.parse(localStorage.getItem('currentUser')));
     this.currentUser = this.currentUserSubject.asObservable();
+    this.currentUserToken = localStorage.getItem('token');
   }
 
   public get currentUserValue(): User {
@@ -22,7 +23,7 @@ export class AuthenticationService {
   }
 
   login(email: string, password: string) {
-    return this.http.post<any>(`${environment.apiUrl}/login`, { email, password })
+    return this.http.post<any>(`${environment.apiUrl}/login`, { email, password, rememberMe: true })
       .pipe(map(res => {
         if (res && res.token) {
           localStorage.setItem('currentUser', JSON.stringify(res.user));
