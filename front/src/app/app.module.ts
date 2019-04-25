@@ -1,6 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -10,9 +11,10 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { AlertComponent, SongComponent } from './components';
 import { ErrorInterceptor, JwtInterceptor } from './helpers';
-import {HomeComponent} from './home';
-import {LoginComponent} from './login';
-import {RegisterComponent} from './register';
+import { HomeComponent } from './home';
+import { LoginComponent } from './login';
+import { RegisterComponent } from './register';
+import { OnCreateDirective } from './directives';
 
 @NgModule({
   declarations: [
@@ -21,7 +23,8 @@ import {RegisterComponent} from './register';
     SongComponent,
     HomeComponent,
     LoginComponent,
-    RegisterComponent
+    RegisterComponent,
+    OnCreateDirective
   ],
   imports: [
     BrowserModule,
@@ -29,7 +32,8 @@ import {RegisterComponent} from './register';
     YoutubePlayerModule,
     FormsModule,
     ReactiveFormsModule,
-    HttpClientModule
+    HttpClientModule,
+    NgbModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },

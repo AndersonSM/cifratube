@@ -13,18 +13,18 @@ export class SongService {
   }
 
   getById(id: string) {
-    return this.http.get(`${environment.apiUrl}/songs/${id}`);
+    return this.http.get<Song>(`${environment.apiUrl}/songs/${id}`);
   }
 
   getByUser(user: User) {
-    return this.http.get(`${environment.apiUrl}/users/${user._id}/songs`);
+    return this.http.get<Song[]>(`${environment.apiUrl}/users/${user._id}/songs`);
   }
 
   create(song: Song) {
-    return this.http.post(`${environment.apiUrl}/songs`, song);
+    return this.http.post<Song>(`${environment.apiUrl}/songs`, song);
   }
 
   update(song: Song) {
-    return this.http.put(`${environment.apiUrl}/songs/${song._id}`, song);
+    return this.http.put<Song>(`${environment.apiUrl}/songs/${song._id}`, song);
   }
 }

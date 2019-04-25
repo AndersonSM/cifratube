@@ -1,5 +1,11 @@
-import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { saveAs } from 'file-saver';
+import { SongService, AlertService, AuthenticationService } from '../services';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Song } from '../models';
+import { first } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
+import { NgbPopover } from '@ng-bootstrap/ng-bootstrap';
 
 const HALF_BAR_TIME = 5;
 
@@ -11,49 +17,107 @@ const HALF_BAR_TIME = 5;
 
 export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
   @ViewChild('timeline', {read: ElementRef}) timelineElem: ElementRef;
-  @ViewChild('contentBar', {read: ElementRef}) barElem: ElementRef;
+  @ViewChild('contentBar', {read: ElementRef}) chordBarElem: ElementRef;
   @ViewChild('currentTime', {read: ElementRef}) currentTimeElem: ElementRef;
-  title = 'tcc';
+  private popovers: {};
   private infoIntervalId;
   player: YT.Player;
   currentTime = 0.0;
-  videoId = 'xPDkhW9iUPM';
-  videoTitle = '';
   selectedMarkerTime = undefined;
   markersSet = new Set();
-  markers = {};
   marker = {
     description: '',
     note: ''
   };
   hasMarker = false;
   visibleMarkers = [];
+  canEdit = false;
+  tab = 'info';
+  songSubscription: Subscription;
+  public song: Song;
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private songService: SongService,
+    private alertService: AlertService,
+    private authenticationService: AuthenticationService,
+  ) { }
 
   ngAfterViewInit(): void {
     console.log(this.timelineElem);
   }
 
-  ngOnDestroy(): void {
+  ngOnInit(): void {
+    this.song = new Song();
+    this.song.title = '';
+    this.song.artist = '';
+    this.song.videoUrl = '';
+    this.song.markers = {};
+    this.route.params.subscribe((params) => {
+      if (params.id) {
+        this.tab = 'video';
+        this.songSubscription = this.songService.getById(params.id).pipe(first()).subscribe((song: Song) => {
+          console.log(song);
+          /*if (this.authenticationService.currentUserValue && this.authenticationService.currentUserValue._id === song.author._id) {
+            this.canEdit = true;
+          }*/
+        });
+      } else {
+        console.log('no param id');
+        this.tab = 'info';
+        this.canEdit = true;
+        this.song.author = this.authenticationService.currentUserValue;
+      }
+    });
   }
 
-  ngOnInit(): void {
+  ngOnDestroy(): void {
+    this.songSubscription.unsubscribe();
+  }
+
+  setMarkerPopover(popover, time) {
+    this.song.markers[time].popover = popover;
+  }
+
+  deleteMarkersPopover() {
+    for (const time in this.song.markers) {
+      delete this.song.markers[time].popover;
+    }
+  }
+
+  closePopover(time, event?) {
+    if (!event || event.key === 'Escape' || event.key === 'Enter') {
+      this.song.markers[time].popover.close();
+    }
+  }
+
+  closeAllPopovers() {
+    for (const time in this.song.markers) {
+      this.song.markers[time].popover.close();
+    }
+  }
+
+  openPopover(time) {
+    this.closeAllPopovers();
+    if (this.song.markers[time]) { this.song.markers[time].popover.open(); }
   }
 
   saveMarker() {
     const time = this.getCurrentTime();
     this.getMarkerTimelinePosition(time);
-    this.markers[time] = this.marker;
+    this.song.markers[time] = this.marker;
     this.markersSet.add(time);
-    console.log('saved marker at ', this.getCurrentTime(), this.markers);
+    console.log('saved marker at ', this.getCurrentTime(), this.song.markers);
   }
 
   deleteMarker() {
     if (!this.selectedMarkerTime) {
       return;
     }
-    delete this.markers[this.selectedMarkerTime];
+    delete this.song.markers[this.selectedMarkerTime];
     this.markersSet.delete(this.selectedMarkerTime);
-    console.log('deleted marker at ', this.selectedMarkerTime, this.markers);
+    console.log('deleted marker at ', this.selectedMarkerTime, this.song.markers);
   }
 
   verifyInfoToShow(time?) {
@@ -67,12 +131,11 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
       this.infoIntervalId = null;
     }
 
-    if (this.markers[timeToUse]) {
-      this.marker = this.markers[timeToUse];
+    if (this.song.markers[timeToUse]) {
+      this.marker = this.song.markers[timeToUse];
       this.hasMarker = true;
       // came from goto (clicked on marker)
       if (time) { this.selectedMarkerTime = timeToUse; }
-      console.log('got marker');
     } else {
       this.hasMarker = false;
       this.marker = {
@@ -85,8 +148,6 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
   onPlayerReady(player) {
     this.player = player;
     this.player.setSize(800, 400);
-    this.videoTitle = player.getVideoData().title;
-    console.log('player instance:', player);
   }
 
   onStateChange(event) {
@@ -107,8 +168,11 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
       }, 100);
     }
 
-    if (this.videoTitle !== event.target.getVideoData().title) {
-      this.videoTitle = event.target.getVideoData().title;
+    if (!this.song.videoTitle) {
+      this.song.videoTitle = event.target.getVideoData().title;
+    }
+    if (!this.song.videoId) {
+      this.song.videoId = event.target.getVideoData().video_id;
     }
   }
 
@@ -118,7 +182,11 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   goTo(time, event?) {
-    if (event) { event.stopPropagation(); }
+    this.openPopover(time);
+    if (event) {
+      event.stopImmediatePropagation();
+      event.preventDefault();
+    }
     if (time == null) {
       console.log('clicked timeline at pos', event.offsetX);
       this.goTo(this.getTimeByPosition(event.offsetX), event);
@@ -212,9 +280,9 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
 
     let marker;
     for (const mTime of markers) {
-      marker = this.markers[mTime];
+      marker = this.song.markers[mTime];
       marker.time = mTime;
-      marker.position = this.getMarkerBarPosition(mTime, currentTime);
+      marker.position = this.getMarkerChordBarPosition(mTime, currentTime);
       const factor = mTime < currentTime ? mTime - currentTime + HALF_BAR_TIME : Math.abs(mTime - currentTime - HALF_BAR_TIME);
       marker.size = 4.5 * factor / HALF_BAR_TIME;
       /*const barTime = mTime - currentTime + HALF_BAR_TIME;
@@ -226,10 +294,10 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
     this.visibleMarkers = result;
   }
 
-  getMarkerBarPosition(time, currentTime) {
+  getMarkerChordBarPosition(time, currentTime) {
     const barTime = time - currentTime + HALF_BAR_TIME;
-    console.log('bartime', barTime);
-    const markerPos = this.barElem.nativeElement.offsetWidth * barTime / HALF_BAR_TIME - (this.barElem.nativeElement.offsetWidth / 2);
+    const markerPos = this.chordBarElem.nativeElement.offsetWidth * barTime / HALF_BAR_TIME -
+      (this.chordBarElem.nativeElement.offsetWidth / 2);
     return markerPos;
   }
 
@@ -251,7 +319,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
 
   // HELPERS
   saveFile() {
-    const blob = new Blob([JSON.stringify({videoId: this.videoId, videoTitle: this.videoTitle, markers: this.markers})],
+    const blob = new Blob([JSON.stringify({videoId: this.song.videoId, videoTitle: this.song.videoTitle, markers: this.song.markers})],
       {type: 'application/json'});
     // @ts-ignore
     saveAs(blob, this.videoTitle + '.json');
@@ -273,6 +341,37 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
 
+  loadVideo() {
+    this.song.videoUrl = this.song.videoUrl.trim();
+    this.song.title = this.song.title.trim();
+    this.song.artist = this.song.artist.trim();
+    if (this.song.videoUrl.length < 10 || this.song.title.length < 1 || this.song.artist.length < 1) {
+      this.alertService.error('All fields are required.');
+      return;
+    }
+
+    if (this.song.videoId) {
+      // TODO: save
+      // saveSong();
+    } else {
+      const videoId = this.getVideoId(this.song.videoUrl);
+      if (!videoId) {
+        this.alertService.error('Invalid YouTube URL.');
+        return;
+      }
+
+      this.player.loadVideoById(videoId);
+    }
+
+    this.tab = 'video';
+  }
+
+  getVideoId(url) {
+    const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[7].length === 11) ? match[7] : null;
+  }
+
   reset(data?) {
     if (this.player) {
       this.player.pauseVideo();
@@ -290,15 +389,21 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
     this.hasMarker = false;
     this.visibleMarkers = [];
 
-    this.videoId = data ? data.videoId : this.videoId;
-    this.videoTitle = data ? data.videoTitle : '';
-    this.markers = data ? data.markers : {};
+    this.song.videoId = data ? data.videoId : this.song.videoId;
+    this.song.videoTitle = data ? data.videoTitle : '';
+    this.song.markers = data ? data.markers : {};
 
     this.markersSet.clear();
-    for (const mTime in this.markers) {
+    for (const mTime in this.song.markers) {
       this.markersSet.add(mTime);
     }
 
-    this.player.loadVideoById(this.videoId);
+    this.player.loadVideoById(this.song.videoId);
+  }
+
+  formatSecondsToMinutesString(seconds) {
+    const min = Math.floor(seconds / 60);
+    const sec = Math.floor(seconds - min * 60);
+    return (min < 10 ? '0' : '') + min + ':' + (sec < 10 ? '0' : '') + sec;
   }
 }

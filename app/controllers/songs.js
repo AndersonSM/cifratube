@@ -48,23 +48,23 @@ async function createSong(req, res) {
 }
 
 async function updateSong(req, res) {
-    var songs = await Songs.findOne({_id: req.params.id});
-    if (!songs) {
-        RestHelper.sendErrorResponse(res, 400, 'Song not found.');
+    var song = req.body;
+    if (!req.params.id || !song || !song._id || req.params.id !== song._id) {
+        RestHelper.sendErrorResponse(res, 400, 'Invalid data.');
         return;
     }
 
-    if (songs.authorId !== req.user._id.toString()) {
+    if (song.author._id !== req.user._id.toString()) {
         RestHelper.sendErrorResponse(res, 403, 'Unauthorized.');
         return;
     }
 
-    try {
-        songs = await songs.save();
-    } catch (err) {
+    delete song.views;
+    Songs.update({_id: song._id}, {$set : song}).then(function (song) {
+        RestHelper.sendJsonResponse(res, 200, song);
+    }).catch(function (err) {
         RestHelper.sendErrorResponse(res, 500, err.stack);
-    }
-    RestHelper.sendJsonResponse(res, 200, songs);
+    });
 }
 
 module.exports = {

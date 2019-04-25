@@ -1,49 +1,90 @@
 <!--The content below is only a placeholder and can be replaced.-->
-<div style="text-align:center">
-  <h1>
-    {{ videoTitle ? videoTitle : ''}}
-  </h1>
+<div class="row" [hidden]="tab !== 'info'">
+  <div *ngIf="canEdit && song.videoId" class="col-12">
+    <button class="btn btn-link text-muted" (click)="tab = 'video'"><h3>Video ></h3></button>
+  </div>
+  <div class="col-md-3"></div>
+  <div class="col-md-6 col-sm-12">
+    <form (ngSubmit)="loadVideo()">
+      <div class="form-group">
+        <label for="video-url">Video URL</label>
+        <input id="video-url" name="video-url" type="text" class="form-control" [(ngModel)]="song.videoUrl" [disabled]="song.videoId" required/>
+      </div>
+      <div class="form-group">
+        <label for="title">Song title</label>
+        <input id="title" name="title" type="text" class="form-control" [(ngModel)]="song.title" required/>
+      </div>
+      <div class="form-group">
+        <label for="artist">Artist</label>
+        <input id="artist" name="artist" type="text" class="form-control" [(ngModel)]="song.artist" required/>
+      </div>
+      <button type="submit" class="btn btn-dark">{{ song.videoId ? 'Save' : 'Next' }}</button>
+    </form>
+  </div>
+  <div class="col-md-3"></div>
 </div>
-<div>
-  <input [(ngModel)]="videoId">
-  <button (click)="reset()">OK</button>
-</div>
-<div class="bar-wrap">
-  <div class="content-bar" #contentBar>
-    <div class="center-indicator"></div>
-    <div class="content-marker" *ngFor="let marker of visibleMarkers" (click)="goTo(marker.time, $event); $event.stopPropagation()"
-         [ngStyle]="{left: marker.position+'px'}">
-      <div [ngStyle]="{'font-size': marker.size+'rem'}">{{ marker.note }}</div>
+<div class="row" [hidden]="tab !== 'video'">
+  <div *ngIf="canEdit" class="col-12">
+    <button class="btn btn-link text-muted" (click)="tab = 'info'"><h3>< Song info</h3></button>
+  </div>
+  <div class="col-12 text-center">
+    <h1>
+      {{ song.title }} - {{ song.artist }}
+    </h1>
+  </div>
+  <div class="bar-wrap">
+    <div class="content-bar" #contentBar>
+      <div class="center-indicator"></div>
+      <div class="content-marker" *ngFor="let marker of visibleMarkers" (click)="goTo(marker.time, $event); $event.stopPropagation()"
+           [ngStyle]="{left: marker.position+'px'}">
+        <div [ngStyle]="{'font-size': marker.size+'rem'}">{{ marker.note }}</div>
+      </div>
     </div>
   </div>
-</div>
-<div class="timeline-wrap">
-  <div class="timeline" #timeline (click)="goTo(null, $event)">
-    <div class="current-time-indicator" #currentTime></div>
-    <div class="marker" *ngFor="let markerTime of markersSet" (click)="goTo(markerTime, $event); $event.stopPropagation()"
-         [ngStyle]="{left: getMarkerTimelinePosition(markerTime)+'px', 'border-color': markerTime === selectedMarkerTime ? 'darkblue' : 'red'}"></div>
+  <div class="timeline-wrap">
+    <div class="timeline" #timeline (click)="goTo(null, $event)">
+      <div class="current-time-indicator" #currentTime></div>
+      <div class="marker" *ngFor="let markerTime of markersSet" (click)="goTo(markerTime, $event)"
+           [ngStyle]="{left: getMarkerTimelinePosition(markerTime)+'px', 'border-color': markerTime === selectedMarkerTime ? 'darkblue' : 'red'}"
+           [ngbPopover]="popContent" [popoverTitle]="popTitle" placement="bottom" [id]="'marker'+getMarkerTimelinePosition(markerTime)"
+           #popover="ngbPopover" container="body" [autoClose]="false"
+           (onCreate)="setMarkerPopover(popover, markerTime)">
+        <ng-template #popTitle>
+          <div class="text-center">
+            <b>{{ formatSecondsToMinutesString(markerTime) }}</b>
+          </div>
+        </ng-template>
+        <ng-template #popContent>
+          <div>
+            <div class="form-group">
+              <label for="noteInput">Note</label>
+              <input (keydown)="closePopover(markerTime, $event)" class="form-control" type="text" id="noteInput"
+                     placeholder="Note" [(ngModel)]="marker.note" autofocus/>
+            </div>
+            <div class="form-group">
+              <label for="descInput">Desc</label>
+              <input (keydown)="closePopover(markerTime, $event)" class="form-control" type="text" id="descInput"
+                     placeholder="Description" [(ngModel)]="marker.description"/>
+            </div>
+            <button (click)="closePopover(markerTime)" class="btn btn-danger btn-sm">Close</button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 text-center">
+    <youtube-player
+      [videoId]="song.videoId"
+      (ready)="onPlayerReady($event)"
+      (change)="onStateChange($event)"
+    ></youtube-player>
+  </div>
+  <div>
+    <button type="button" (click)="saveMarker()">{{ hasMarker ? 'Save marker' : 'Add marker' }}</button>
+    <button type="button" (click)="goToPreviousMarker()">Previous marker <-</button>
+    <button type="button" (click)="goToNextMarker()">Next marker -></button>
+    <button type="button" (click)="deleteMarker()" [disabled]="!selectedMarkerTime">X</button>
+    <button type="button" (click)="saveFile()">Save file</button>
+    <input type="file" placeholder="Load file" (change)="loadFile($event)">
   </div>
 </div>
-<div style="width: 100%">
-  <youtube-player
-    [videoId]="videoId"
-    (ready)="onPlayerReady($event)"
-    (change)="onStateChange($event)"
-  ></youtube-player>
-</div>
-<div>
-  <button type="button" (click)="saveMarker()">{{ hasMarker ? 'Save marker' : 'Add marker' }}</button>
-  <button type="button" (click)="goToPreviousMarker()">Previous marker <-</button>
-  <button type="button" (click)="goToNextMarker()">Next marker -></button>
-  <button type="button" (click)="deleteMarker()" [disabled]="!selectedMarkerTime">X</button>
-  <button type="button" (click)="saveFile()">Save file</button>
-  <input type="file" placeholder="Load file" (change)="loadFile($event)">
-</div>
-<div>
-  <label for="descInput">Desc</label>
-  <input type="text" id="descInput" placeholder="Description" [(ngModel)]="marker.description"/>
-  <label for="noteInput">Note</label>
-  <input type="text" id="noteInput" placeholder="Note" [(ngModel)]="marker.note"/>
-</div>
-
-<router-outlet></router-outlet>
