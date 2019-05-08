@@ -44,12 +44,17 @@
   <div class="btn-group" role="group" *ngIf="canEdit">
     <button type="button" class="btn btn-dark" (click)="saveMarker()">
       <span class="fas fa-map-pin"></span> {{ hasMarker ? 'Save marker' : 'Add marker' }}</button>
+    <button type="button" class="btn btn-danger" (click)="deleteMarker()" [disabled]="!selectedMarkerTime"><span class="fas fa-trash"></span></button>
     <button type="button" class="btn btn-dark" (click)="goToPreviousMarker()"><span class="fas fa-angle-left"></span> Previous marker</button>
     <button type="button" class="btn btn-dark" (click)="goToNextMarker()">Next marker <span class="fas fa-angle-right"></span></button>
-    <button type="button" class="btn btn-danger" (click)="deleteMarker()" [disabled]="!selectedMarkerTime"><span class="fas fa-trash"></span></button>
+    <button type="button" class="btn btn-dark" (click)="isLooping = !isLooping"
+            [ngClass]="{'active': isLooping}"><span class="fas fa-sync-alt"></span> Loop region</button>
     <button type="button" class="btn btn-warning" (click)="saveSong()"><span class="fa fa-save"></span> Save</button>
   </div>
   <div class="timeline-wrap">
+    <div class="custom-slider" [hidden]="!isLooping">
+      <ng5-slider [(value)]="loopingRegion.startTime" [(highValue)]="loopingRegion.endTime" [options]="sliderOptions"></ng5-slider>
+    </div>
     <div class="timeline" #timeline (click)="goTo(null, $event)" (mousemove)="showTimeOnTimeline($event)"
          (mouseleave)="hideTimeOnTimeline($event)">
       <div class="time-tooltip" #timeTooltip hidden><div>00:00</div></div>

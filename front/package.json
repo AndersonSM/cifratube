@@ -23,6 +23,7 @@
     "bootstrap": "^4.3.1",
     "core-js": "^2.5.4",
     "file-saver": "^2.0.1",
+    "ng5-slider": "^1.1.14",
     "ngx-youtube-player": "^6.0.0",
     "rxjs": "~6.3.3",
     "tslib": "^1.9.0",

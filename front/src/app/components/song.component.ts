@@ -14,6 +14,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Song } from '../models';
 import { first } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
+import { Options } from 'ng5-slider';
 
 const HALF_BAR_TIME = 5;
 const TOOLTIP_WIDTH = 50;
@@ -22,14 +23,17 @@ const TIME_INDICATOR_LEFT_OFFSET = 7.5;
 @Component({
   selector: 'app-song-component',
   templateUrl: './song.component.html',
-  styleUrls: ['./song.component.css']
+  styleUrls: ['./song.component.scss']
 })
 
 export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterViewChecked {
+  // html elements
   @ViewChild('timeline', {read: ElementRef}) timelineElem: ElementRef;
   @ViewChild('timeTooltip', {read: ElementRef}) timeTooltipElem: ElementRef;
   @ViewChild('contentBar', {read: ElementRef}) chordBarElem: ElementRef;
   @ViewChild('currentTime', {read: ElementRef}) currentTimeElem: ElementRef;
+
+  // timeline state
   private infoIntervalId;
   player: YT.Player;
   currentTime = 0.0;
@@ -41,10 +45,26 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
   };
   hasMarker = false;
   visibleMarkers = [];
+
+  // data state
   canEdit = false;
   tab = 'info';
   songSubscription: Subscription;
   public song: Song;
+
+  // tools state
+  isLooping = true;
+  loopingRegion = {startTime: 0, endTime: 0};
+
+  // config
+  sliderOptions: Options = {
+    floor: 0,
+    ceil: 0,
+    step: 0.1,
+    translate: (value: number): string => {
+      return '';
+    }
+  };
 
   constructor(
     private route: ActivatedRoute,
@@ -172,6 +192,12 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
 
   verifyInfoToShow(time?) {
     const timeToUse = time || this.getCurrentTime();
+
+    if (this.isLooping && (timeToUse < this.loopingRegion.startTime || timeToUse > this.loopingRegion.endTime)) {
+      this.goTo(this.loopingRegion.startTime);
+      return;
+    }
+
     this.currentTimeElem.nativeElement.style.left = (this.getMarkerTimelinePosition(timeToUse) - TIME_INDICATOR_LEFT_OFFSET) + 'px';
 
     if (!this.player || this.player.getPlayerState() !== YT.PlayerState.PLAYING) {
@@ -204,7 +230,6 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
   onStateChange(event) {
     console.log('Player state: ' + event.data);
     if (!this.player) { return; }
-
     if (this.player.getPlayerState() === YT.PlayerState.PAUSED && this.infoIntervalId) {
       console.log('Video paused');
       console.log('Clear interval');
@@ -217,8 +242,15 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
         this.verifyInfoToShow();
         this.updateVisibleMarkers();
       }, 100);
+      if (this.isLooping && (this.player.getCurrentTime() < this.loopingRegion.startTime ||
+        this.player.getCurrentTime() > this.loopingRegion.endTime)) {
+        this.goTo(this.loopingRegion.startTime);
+      }
     }
 
+    if (!this.sliderOptions.ceil && this.player.getDuration()) {
+      this.setSliderCeil();
+    }
     if (!this.song.videoTitle && event.target.getVideoData() && event.target.getVideoData().title) {
       this.song.videoTitle = event.target.getVideoData().title;
     }
@@ -226,6 +258,13 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
       this.song.videoId = event.target.getVideoData().video_id;
       this.tab = 'video';
     }
+  }
+
+  setSliderCeil() {
+    const newOptions: Options = Object.assign({}, this.sliderOptions);
+    newOptions.ceil = Number((this.player.getDuration() - 0.2).toFixed(1));
+    this.sliderOptions = newOptions;
+    this.loopingRegion.endTime = Number((newOptions.ceil - 1).toFixed(1));
   }
 
   getCurrentTime() {
@@ -244,6 +283,10 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     if (time == null) {
       console.log('clicked timeline at pos', event.offsetX);
       this.goTo(this.getTimeByPosition(event.offsetX), event);
+      return;
+    }
+    if (this.isLooping && (time < this.loopingRegion.startTime || time > this.loopingRegion.endTime)) {
+      this.goTo(this.loopingRegion.startTime);
       return;
     }
     if (this.markersSet.has(time)) {
@@ -379,7 +422,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     if ((!event || event.offsetX <= 0) && !time && !pos) { return; }
 
     this.timeTooltipElem.nativeElement.hidden = false;
-    const leftPos = time ? this.getMarkerTimelinePosition(time) : pos ? Number(pos.replace('px', '')) : event.offsetX;
+    const leftPos = time ? this.getMarkerTimelinePosition(time) : pos ? this.trimPxAndConvertToNumber(pos) : event.offsetX;
     const formattedTime = this.formatSecondsToMinutesString(this.getTimeByPosition(leftPos));
     this.timeTooltipElem.nativeElement.firstChild.innerText = formattedTime;
     this.timeTooltipElem.nativeElement.style.left = (leftPos - TOOLTIP_WIDTH / 2) + 'px';
@@ -450,5 +493,9 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     const min = Math.floor(seconds / 60);
     const sec = Math.floor(seconds - min * 60);
     return (min < 10 ? '0' : '') + min + ':' + (sec < 10 ? '0' : '') + sec;
+  }
+
+  trimPxAndConvertToNumber(pos) {
+    return Number(pos.replace('px', ''));
   }
 }
