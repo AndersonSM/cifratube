@@ -371,7 +371,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     return this.roundTime(time);
   }
 
-  showTimeOnTimeline(event, time, pos) {
+  showTimeOnTimeline(event, time?, pos?) {
     if (event) {
       event.stopImmediatePropagation();
       event.preventDefault();
