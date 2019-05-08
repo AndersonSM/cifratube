@@ -50,10 +50,13 @@
     <button type="button" class="btn btn-warning" (click)="saveSong()"><span class="fa fa-save"></span> Save</button>
   </div>
   <div class="timeline-wrap">
-    <div class="timeline" #timeline (click)="goTo(null, $event)">
-      <div class="current-time-indicator" #currentTime></div>
-      <div class="marker" *ngFor="let markerTime of markersSet" (click)="goTo(markerTime, $event)"
-           [ngStyle]="{left: getMarkerTimelinePosition(markerTime)+'px', 'border-color': markerTime === selectedMarkerTime ? 'darkblue' : 'red'}"
+    <div class="timeline" #timeline (click)="goTo(null, $event)" (mousemove)="showTimeOnTimeline($event)"
+         (mouseleave)="hideTimeOnTimeline($event)">
+      <div class="time-tooltip" #timeTooltip hidden><div>00:00</div></div>
+      <div class="current-time-indicator" (mousemove)="showTimeOnTimeline($event, null, currentTime.style.left)" id="current-time-indicator" #currentTime></div>
+      <div class="passed-time-indicator" [ngStyle]="{width: currentTime.style.left}"></div>
+      <div class="marker" *ngFor="let markerTime of markersSet" (click)="goTo(markerTime, $event)" (mousemove)="showTimeOnTimeline($event, markerTime)"
+           [ngStyle]="{left: getMarkerTimelinePosition(markerTime)+'px', borderColor: markerTime == selectedMarkerTime ? 'rgb(52, 58, 64)' : '#fcc107'}"
            [ngbPopover]="popContent" [popoverTitle]="popTitle" placement="bottom" [id]="'marker'+getMarkerTimelinePosition(markerTime)"
            #popover="ngbPopover" container="body" [autoClose]="false"
            (onCreate)="setMarkerPopover(popover, markerTime)">

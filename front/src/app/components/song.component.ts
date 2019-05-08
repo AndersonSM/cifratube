@@ -1,13 +1,23 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ChangeDetectorRef,
+  AfterViewChecked
+} from '@angular/core';
 import { saveAs } from 'file-saver';
 import { SongService, AlertService, AuthenticationService } from '../services';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Song } from '../models';
 import { first } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
-import { NgbPopover } from '@ng-bootstrap/ng-bootstrap';
 
 const HALF_BAR_TIME = 5;
+const TOOLTIP_WIDTH = 50;
+const TIME_INDICATOR_LEFT_OFFSET = 7.5;
 
 @Component({
   selector: 'app-song-component',
@@ -15,8 +25,9 @@ const HALF_BAR_TIME = 5;
   styleUrls: ['./song.component.css']
 })
 
-export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
+export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('timeline', {read: ElementRef}) timelineElem: ElementRef;
+  @ViewChild('timeTooltip', {read: ElementRef}) timeTooltipElem: ElementRef;
   @ViewChild('contentBar', {read: ElementRef}) chordBarElem: ElementRef;
   @ViewChild('currentTime', {read: ElementRef}) currentTimeElem: ElementRef;
   private infoIntervalId;
@@ -41,6 +52,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
     private songService: SongService,
     private alertService: AlertService,
     private authenticationService: AuthenticationService,
+    private cdRef: ChangeDetectorRef
   ) { }
 
   ngAfterViewInit(): void {
@@ -71,6 +83,10 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
     this.song.artist = '';
     this.song.videoUrl = '';
     this.song.markers = {};
+  }
+
+  ngAfterViewChecked() {
+    this.cdRef.detectChanges();
   }
 
   saveSong() {
@@ -156,7 +172,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
 
   verifyInfoToShow(time?) {
     const timeToUse = time || this.getCurrentTime();
-    this.currentTimeElem.nativeElement.style.left = this.getMarkerTimelinePosition(timeToUse) + 'px';
+    this.currentTimeElem.nativeElement.style.left = (this.getMarkerTimelinePosition(timeToUse) - TIME_INDICATOR_LEFT_OFFSET) + 'px';
 
     if (!this.player || this.player.getPlayerState() !== YT.PlayerState.PLAYING) {
       console.log('Video not playing');
@@ -218,6 +234,8 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   goTo(time, event?) {
+    if (!this.player || (event && event.target.id === 'current-time-indicator')) { return; }
+
     this.openPopover(time);
     if (event) {
       event.stopImmediatePropagation();
@@ -228,9 +246,12 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
       this.goTo(this.getTimeByPosition(event.offsetX), event);
       return;
     }
-    if (!this.markersSet.has(time)) {
+    if (this.markersSet.has(time)) {
+      this.selectedMarkerTime = time;
+    } else {
       this.selectedMarkerTime = undefined;
     }
+    console.log(time, this.selectedMarkerTime);
 
     console.log('goto', Number(time));
     this.player.seekTo(Number(time), true);
@@ -345,8 +366,27 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   getTimeByPosition(pos) {
+    if (!this.player) { return 0; }
     const time = this.player.getDuration() * pos / this.timelineElem.nativeElement.offsetWidth;
     return this.roundTime(time);
+  }
+
+  showTimeOnTimeline(event, time, pos) {
+    if (event) {
+      event.stopImmediatePropagation();
+      event.preventDefault();
+    }
+    if ((!event || event.offsetX <= 0) && !time && !pos) { return; }
+
+    this.timeTooltipElem.nativeElement.hidden = false;
+    const leftPos = time ? this.getMarkerTimelinePosition(time) : pos ? Number(pos.replace('px', '')) : event.offsetX;
+    const formattedTime = this.formatSecondsToMinutesString(this.getTimeByPosition(leftPos));
+    this.timeTooltipElem.nativeElement.firstChild.innerText = formattedTime;
+    this.timeTooltipElem.nativeElement.style.left = (leftPos - TOOLTIP_WIDTH / 2) + 'px';
+  }
+
+  hideTimeOnTimeline(event) {
+    this.timeTooltipElem.nativeElement.hidden = true;
   }
 
   roundTime(time) {
