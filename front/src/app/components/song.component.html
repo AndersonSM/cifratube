@@ -49,7 +49,15 @@
     <button type="button" class="btn btn-dark" (click)="goToNextMarker()">Next marker <span class="fas fa-angle-right"></span></button>
     <button type="button" class="btn btn-dark" (click)="isLooping = !isLooping"
             [ngClass]="{'active': isLooping}"><span class="fas fa-sync-alt"></span> Loop region</button>
+    <button type="button" class="btn btn-dark" (click)="startCopy()"
+            [ngClass]="{'active': isCopying}"><span class="fas fa-clone"></span> {{ isCopying ? 'Cancel copy' : 'Copy' }}</button>
     <button type="button" class="btn btn-warning" (click)="saveSong()"><span class="fa fa-save"></span> Save</button>
+  </div>
+  <div class="col-12 mt-2">
+    <div class="alert alert-secondary" role="alert" [hidden]="!isCopying">
+      {{ copyMessage }}
+      <button class="btn btn-dark btn-sm" (click)="selectCopyMarkerAndPaste()">OK</button>
+    </div>
   </div>
   <div class="btn-group" role="group" *ngIf="!canEdit">
     <button type="button" class="btn btn-dark" (click)="isLooping = !isLooping"
