@@ -33,6 +33,13 @@
     </h1>
   </div>
   <div class="bar-wrap">
+    <div class="description-bar" #descriptionBar>
+      <div class="marker-description" *ngFor="let marker of visibleMarkers" [ngStyle]="{color: 'rgba(0,0,0,' + marker.opacity + ')'}">
+        {{ marker.description }}
+      </div>
+    </div>
+  </div>
+  <div class="bar-wrap">
     <div class="content-bar" #contentBar>
       <div class="center-indicator"></div>
       <div class="content-marker" *ngFor="let marker of visibleMarkers" (click)="goTo(marker.time, $event); $event.stopPropagation()"

@@ -16,12 +16,10 @@ import { first } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { Options } from 'ng5-slider';
 
-const TIME_GAP_LIMIT = 1; // sec
-const HALF_BAR_TIME = 5; // sec
+const HALF_BAR_TIME = 2; // sec
 const TOOLTIP_WIDTH = 50; // ps
 const TIME_INDICATOR_LEFT_OFFSET = 7.5; // px
 const UPDATE_INTERVAL = 100; // 100 ms
-const CLOSE_MARKERS_VERIFICATION_INTERVAL = 2000; // 2 sec
 
 @Component({
   selector: 'app-song-component',
@@ -38,7 +36,6 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
 
   // timeline state
   private infoIntervalId;
-  private closeMarkersIntervalId;
   player: YT.Player;
   currentTime = 0.0;
   selectedMarkerTime = undefined;
@@ -119,10 +116,9 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
 
   saveSong() {
     if (!this.verifySongInfo()) { return; }
-    const markersWithTempData = this.song.markers;
-    this.deleteMarkersTempData();
+    const songClone = this.cloneSong();
     if (!this.song._id) {
-      this.songSubscription = this.songService.create(this.song).pipe(first()).subscribe(
+      this.songSubscription = this.songService.create(songClone).pipe(first()).subscribe(
         song => {
           this.alertService.success('Saved song with success.', true);
           console.log('Created');
@@ -130,18 +126,15 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
         },
         error => {
           this.alertService.error(error);
-          this.song.markers = markersWithTempData;
         });
     } else {
-      this.songSubscription = this.songService.update(this.song).pipe(first()).subscribe(
+      this.songSubscription = this.songService.update(songClone).pipe(first()).subscribe(
         song => {
           this.alertService.success('Saved song with success.', false);
-          this.song.markers = markersWithTempData;
           console.log('Updated');
         },
         error => {
           this.alertService.error(error);
-          this.song.markers = markersWithTempData;
         });
     }
   }
@@ -161,17 +154,34 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     this.song.markers[time].popover = popover;
   }
 
-  deleteMarkersTempData() {
+  cloneSong() {
+    const clone = new Song();
+    clone.markers = {};
+    clone.videoId = this.song.videoId;
+    clone.artist = this.song.artist;
+    clone.title = this.song.title;
+    clone.author = this.song.author;
+    clone.videoUrl = this.song.videoUrl;
+    clone.videoTitle = this.song.videoTitle;
+    clone.createdDate = this.song.createdDate;
+    clone._id = this.song._id;
+
     for (const time in this.song.markers) {
-      delete this.song.markers[time].popover;
-      delete this.song.markers[time].size;
-      delete this.song.markers[time].position;
+      clone.markers[time] = {
+        description: this.song.markers[time].description,
+        note: this.song.markers[time].note,
+        time: this.song.markers[time].time
+      };
     }
+
+    return clone;
   }
 
   closePopover(time, event?) {
     if (!event || event.key === 'Escape' || event.key === 'Enter') {
-      this.song.markers[time].popover.close();
+      if (this.song.markers[time].popover) {
+        this.song.markers[time].popover.close();
+      }
     }
   }
 
@@ -221,9 +231,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
       console.log('Video not playing');
       console.log('clear interval');
       clearInterval(this.infoIntervalId);
-      clearInterval(this.closeMarkersIntervalId);
       this.infoIntervalId = null;
-      this.closeMarkersIntervalId = null;
     }
 
     if (this.song.markers[timeToUse]) {
@@ -254,8 +262,6 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
       console.log('Clear interval');
       clearInterval(this.infoIntervalId);
       this.infoIntervalId = null;
-      clearInterval(this.closeMarkersIntervalId);
-      this.closeMarkersIntervalId = null;
     } else if (this.player.getPlayerState() === YT.PlayerState.PLAYING && !this.infoIntervalId) {
       console.log('Video playing');
       console.log('Set interval');
@@ -263,10 +269,6 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
         this.verifyInfoToShow();
         this.updateVisibleMarkers();
       }, UPDATE_INTERVAL);
-      this.closeMarkersIntervalId = setInterval(() => {
-        this.verifyCloseMarkers();
-      }, CLOSE_MARKERS_VERIFICATION_INTERVAL);
-      this.verifyCloseMarkers();
       if (this.isLooping && (this.getCurrentTime() < this.loopingRegion.startTime ||
         this.getCurrentTime() > this.loopingRegion.endTime)) {
         this.goTo(this.loopingRegion.startTime);
@@ -321,7 +323,6 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     }
 
     this.player.seekTo(Number(time), true);
-    this.verifyCloseMarkers();
     this.updateVisibleMarkers(time);
     this.verifyInfoToShow(Number(time));
   }
@@ -433,30 +434,6 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     array.sort((a, b) => a - b);
   }
 
-  // CONTENT BAR
-  verifyCloseMarkers() {
-    if (!this.player || !this.player.getCurrentTime()) { return; }
-
-    let smallestGap = Number.POSITIVE_INFINITY;
-    const currentTime = this.getCurrentTime();
-    const markers = [];
-
-    this.markersSet.forEach((mTime) => {
-      if (mTime > currentTime - this.halfBarTime && mTime < currentTime + this.halfBarTime) {
-        markers.push(mTime);
-      }
-    });
-    this.sortArrayAsc(markers);
-
-    for (let i = 1; i < markers.length; i++) {
-      const gap = this.song.markers[markers[i]].time - this.song.markers[markers[i - 1]].time;
-      if (gap < smallestGap) {
-        smallestGap = gap;
-      }
-    }
-    this.halfBarTime = smallestGap < TIME_GAP_LIMIT && markers.length ? HALF_BAR_TIME / 2 : HALF_BAR_TIME;
-  }
-
   updateVisibleMarkers(time?) {
     const currentTime = time || this.getCurrentTime();
     const result = [];
@@ -477,11 +454,11 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
       marker.position = this.getMarkerChordBarPosition(mTime, currentTime);
       const factor = mTime < currentTime ? mTime - currentTime + this.halfBarTime : Math.abs(mTime - currentTime - this.halfBarTime);
       marker.size = 4.5 * factor / this.halfBarTime;
+      marker.opacity = factor / this.halfBarTime;
       /*const barTime = mTime - currentTime + HALF_BAR_TIME;
       marker.size = (-0.045 * barTime * barTime) + (0.9 * barTime);*/
       result.push(marker);
     }
-
     this.visibleMarkers = result;
   }
 
