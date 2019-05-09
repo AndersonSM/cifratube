@@ -83,7 +83,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
         this.songSubscription = this.songService.getById(params.id).pipe(first()).subscribe((song: Song) => {
           console.log(song);
           this.song = song;
-          if (this.song.markers) { this.song.markers = {}; }
+          if (!this.song.markers) { this.song.markers = {}; }
           this.setData();
           if (this.authenticationService.currentUserValue && this.authenticationService.currentUserValue._id === song.author._id) {
             this.canEdit = true;
@@ -199,7 +199,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
   verifyInfoToShow(time?) {
     const timeToUse = time || this.getCurrentTime();
 
-    if (this.isLooping && (timeToUse < this.loopingRegion.startTime || timeToUse > this.loopingRegion.endTime)) {
+    if (this.isLooping && this.sliderOptions.ceil && (timeToUse < this.loopingRegion.startTime || timeToUse > this.loopingRegion.endTime)) {
       this.goTo(this.loopingRegion.startTime);
       return;
     }
@@ -281,7 +281,6 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
   goTo(time, event?) {
     if (!this.player || (event && event.target.id === 'current-time-indicator')) { return; }
 
-    this.openPopover(time);
     if (event) {
       event.stopImmediatePropagation();
       event.preventDefault();
@@ -297,6 +296,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     }
     if (this.markersSet.has(time)) {
       this.selectedMarkerTime = time;
+      this.openPopover(time);
     } else {
       this.selectedMarkerTime = undefined;
     }
