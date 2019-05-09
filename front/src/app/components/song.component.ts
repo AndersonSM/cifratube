@@ -54,7 +54,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
 
   // tools state
   isLooping = true;
-  loopingRegion = {startTime: 0, endTime: 0};
+  loopingRegion = {startTime: 0, endTime: Number.POSITIVE_INFINITY};
 
   // config
   sliderOptions: Options = {
@@ -83,6 +83,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
         this.songSubscription = this.songService.getById(params.id).pipe(first()).subscribe((song: Song) => {
           console.log(song);
           this.song = song;
+          if (this.song.markers) { this.song.markers = {}; }
           this.setData();
           if (this.authenticationService.currentUserValue && this.authenticationService.currentUserValue._id === song.author._id) {
             this.canEdit = true;
@@ -142,6 +143,11 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     if (this.songSubscription) {
       this.songSubscription.unsubscribe();
     }
+  }
+
+  changeTab(tab) {
+    this.closeAllPopovers();
+    this.tab = tab;
   }
 
   setMarkerPopover(popover, time) {

@@ -8,7 +8,9 @@ const Schema = mongoose.Schema;
 
 const songsSchema = Schema({
     markers: {
-        type: Schema.Types.Mixed
+        type: Schema.Types.Mixed,
+        required: true,
+        default: {}
     },
     author: {
         type: Schema.Types.ObjectId,

@@ -1,7 +1,7 @@
 <!--The content below is only a placeholder and can be replaced.-->
 <div class="row" [hidden]="tab !== 'info'">
   <div *ngIf="canEdit && song.videoId" class="col-12">
-    <button class="btn btn-link text-muted" (click)="tab = 'video'"><h3>Video ></h3></button>
+    <button class="btn btn-link text-muted" (click)="changeTab('video')"><h3>Video ></h3></button>
   </div>
   <div class="col-md-3"></div>
   <div class="col-md-6 col-sm-12">
@@ -25,7 +25,7 @@
 </div>
 <div class="row" [hidden]="tab !== 'video'">
   <div *ngIf="canEdit" class="col-12">
-    <button class="btn btn-link text-muted" (click)="tab = 'info'"><h3>< Song info</h3></button>
+    <button class="btn btn-link text-muted" (click)="changeTab('info')"><h3>< Song info</h3></button>
   </div>
   <div class="col-12 text-center">
     <h1>
