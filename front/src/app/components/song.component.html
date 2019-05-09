@@ -51,6 +51,10 @@
             [ngClass]="{'active': isLooping}"><span class="fas fa-sync-alt"></span> Loop region</button>
     <button type="button" class="btn btn-warning" (click)="saveSong()"><span class="fa fa-save"></span> Save</button>
   </div>
+  <div class="btn-group" role="group" *ngIf="!canEdit">
+    <button type="button" class="btn btn-dark" (click)="isLooping = !isLooping"
+            [ngClass]="{'active': isLooping}"><span class="fas fa-sync-alt"></span> Loop region</button>
+  </div>
   <div class="timeline-wrap">
     <div class="custom-slider" [hidden]="!isLooping">
       <ng5-slider [(value)]="loopingRegion.startTime" [(highValue)]="loopingRegion.endTime" [options]="sliderOptions"></ng5-slider>
