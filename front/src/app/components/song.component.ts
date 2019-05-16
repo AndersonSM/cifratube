@@ -421,7 +421,8 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     const firstMarkerTime = selectedMarkers[0];
     for (const time of selectedMarkers) {
       const pasteTime = this.roundTime(this.getCurrentTime() + time - firstMarkerTime);
-      this.song.markers[pasteTime] = this.song.markers[time];
+      const markerToCopy = this.song.markers[time];
+      this.song.markers[pasteTime] = { description: markerToCopy.description, note: markerToCopy.note };
       this.markersSet.add(pasteTime);
     }
 
