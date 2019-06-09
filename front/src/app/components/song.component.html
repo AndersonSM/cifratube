@@ -80,7 +80,7 @@
       <div class="current-time-indicator" (mousemove)="showTimeOnTimeline($event, null, currentTime.style.left)" id="current-time-indicator" #currentTime></div>
       <div class="passed-time-indicator" [ngStyle]="{width: currentTime.style.left}"></div>
       <div class="marker" *ngFor="let markerTime of markersSet" (click)="goTo(markerTime, $event)" (mousemove)="showTimeOnTimeline($event, markerTime)"
-           [ngStyle]="{left: getMarkerTimelinePosition(markerTime)+'px', borderColor: markerTime == selectedMarkerTime ? 'rgb(52, 58, 64)' : '#fcc107'}"
+           [ngStyle]="{left: getMarkerTimelinePosition(markerTime)+'px', borderColor: markerTime == selectedMarkerTime ? SELECTED_MARKER_COLOR : song.markers[markerTime].color}"
            [ngbPopover]="popContent" [popoverTitle]="popTitle" placement="bottom" [id]="'marker'+getMarkerTimelinePosition(markerTime)"
            #popover="ngbPopover" container="body" [autoClose]="false"
            (onCreate)="setMarkerPopover(popover, markerTime)">
@@ -100,6 +100,13 @@
               <label for="descInput">Desc</label>
               <input (keydown)="closePopover(markerTime, $event)" class="form-control" type="text" id="descInput"
                      placeholder="Description" [(ngModel)]="marker.description"/>
+            </div>
+            <div class="form-group">
+              <label for="colorInput">Color</label>
+              <input id="colorInput" class="form-control" [style.background]="marker.color" [cpPresetColors]="presetColors"
+                     [cpAlphaChannel]="'disabled'" [cpOutputFormat]="'hex'" [cpPresetLabel]="'Cores utilizadas'"
+                     [cpPosition]="'right'" [cpPositionOffset]="'-500%'" [cpDisableInput]="true"
+                     [(colorPicker)]="marker.color" (colorPickerChange)="marker.color=$event; updatePresetColors()"/>
             </div>
             <button (click)="closePopover(markerTime)" class="btn btn-danger btn-sm">Close</button>
           </div>

@@ -20,6 +20,8 @@ const HALF_BAR_TIME = 2; // sec
 const TOOLTIP_WIDTH = 50; // ps
 const TIME_INDICATOR_LEFT_OFFSET = 7.5; // px
 const UPDATE_INTERVAL = 100; // 100 ms
+const DEFAULT_MARKER_COLOR = '#fcc107';
+const SELECTED_MARKER_COLOR = '#fcc107';
 
 @Component({
   selector: 'app-song-component',
@@ -42,10 +44,12 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
   markersSet = new Set();
   marker = {
     description: '',
-    note: ''
+    note: '',
+    color: DEFAULT_MARKER_COLOR
   };
   hasMarker = false;
   visibleMarkers = [];
+  presetColors = [DEFAULT_MARKER_COLOR];
 
   // data state
   canEdit = false;
@@ -170,7 +174,8 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
       clone.markers[time] = {
         description: this.song.markers[time].description,
         note: this.song.markers[time].note,
-        time: this.song.markers[time].time
+        time: this.song.markers[time].time,
+        color: this.song.markers[time].color
       };
     }
 
@@ -205,6 +210,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     this.getMarkerTimelinePosition(time);
     this.song.markers[time] = this.marker;
     this.markersSet.add(time);
+    this.updatePresetColors();
   }
 
   deleteMarker() {
@@ -215,6 +221,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     delete this.song.markers[this.selectedMarkerTime];
     this.markersSet.delete(this.selectedMarkerTime);
     this.selectedMarkerTime = undefined;
+    this.updatePresetColors();
   }
 
   verifyInfoToShow(time?) {
@@ -243,7 +250,8 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
       this.hasMarker = false;
       this.marker = {
         description: '',
-        note: ''
+        note: '',
+        color: DEFAULT_MARKER_COLOR
       };
     }
   }
@@ -422,7 +430,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     for (const time of selectedMarkers) {
       const pasteTime = this.roundTime(this.getCurrentTime() + time - firstMarkerTime);
       const markerToCopy = this.song.markers[time];
-      this.song.markers[pasteTime] = { description: markerToCopy.description, note: markerToCopy.note };
+      this.song.markers[pasteTime] = { description: markerToCopy.description, note: markerToCopy.note, color: markerToCopy.color };
       this.markersSet.add(pasteTime);
     }
 
@@ -545,17 +553,32 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     this.selectedMarkerTime = undefined;
     this.marker = {
       description: '',
-      note: ''
+      note: '',
+      color: DEFAULT_MARKER_COLOR
     };
     this.hasMarker = false;
     this.visibleMarkers = [];
 
     this.markersSet.clear();
     for (const mTime in this.song.markers) {
+      if (!this.song.markers[mTime].color) {
+        this.song.markers[mTime].color = DEFAULT_MARKER_COLOR;
+      }
       this.markersSet.add(Number(mTime));
     }
 
+    this.updatePresetColors();
+
     if (this.player) { this.player.loadVideoById(this.song.videoId); }
+  }
+
+  updatePresetColors() {
+    const colors = new Set();
+    for (const mTime in this.song.markers) {
+      colors.add(this.song.markers[mTime].color);
+    }
+
+    this.presetColors = Array.from(colors);
   }
 
   formatSecondsToMinutesString(seconds) {

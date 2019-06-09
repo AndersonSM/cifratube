@@ -9,6 +9,7 @@ import { AppComponent } from './app.component';
 import { YoutubePlayerModule } from 'ngx-youtube-player';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Ng5SliderModule } from 'ng5-slider';
+import { ColorPickerModule } from 'ngx-color-picker';
 
 import { AlertComponent, SongComponent } from './components';
 import { ErrorInterceptor, JwtInterceptor } from './helpers';
@@ -35,7 +36,8 @@ import { OnCreateDirective } from './directives';
     ReactiveFormsModule,
     HttpClientModule,
     NgbModule,
-    Ng5SliderModule
+    Ng5SliderModule,
+    ColorPickerModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
