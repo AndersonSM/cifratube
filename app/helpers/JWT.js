@@ -6,7 +6,7 @@
  */
 
 var jwt = require('jsonwebtoken'),
-    tokenSecret = "escolando";
+    tokenSecret = 'cifratubetcc';
 
 // Gera um token a partir do payload
 function issue (payload, rememberMe) {
