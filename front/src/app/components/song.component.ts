@@ -176,7 +176,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
         command: e => this.saveMarker()
       },
       {
-        key: 'escape',
+        key: 'esc',
         preventDefault: true,
         allowIn: [AllowIn.Textarea, AllowIn.Input],
         label: 'Geral',
