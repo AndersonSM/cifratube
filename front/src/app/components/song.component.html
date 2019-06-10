@@ -1,31 +1,31 @@
 <!--The content below is only a placeholder and can be replaced.-->
 <div class="row" [hidden]="tab !== 'info'">
   <div *ngIf="canEdit && song.videoId" class="col-12">
-    <button class="btn btn-link text-muted" (click)="changeTab('video')"><h3>Video ></h3></button>
+    <button class="btn btn-link text-muted" (click)="changeTab('video')"><h3>Vídeo ></h3></button>
   </div>
   <div class="col-md-3"></div>
   <div class="col-md-6 col-sm-12">
     <form (ngSubmit)="loadVideo()">
       <div class="form-group">
-        <label for="video-url">Video URL</label>
+        <label for="video-url">Link do vídeo</label>
         <input id="video-url" name="video-url" type="text" class="form-control" [(ngModel)]="song.videoUrl" [disabled]="song.videoId" required/>
       </div>
       <div class="form-group">
-        <label for="title">Song title</label>
+        <label for="title">Título da música</label>
         <input id="title" name="title" type="text" class="form-control" [(ngModel)]="song.title" required/>
       </div>
       <div class="form-group">
-        <label for="artist">Artist</label>
+        <label for="artist">Artista</label>
         <input id="artist" name="artist" type="text" class="form-control" [(ngModel)]="song.artist" required/>
       </div>
-      <button type="submit" class="btn btn-dark">{{ song.videoId ? 'Save' : 'Next' }}</button>
+      <button type="submit" class="btn btn-dark">{{ song.videoId ? 'Salvar' : 'Próximo' }}</button>
     </form>
   </div>
   <div class="col-md-3"></div>
 </div>
 <div class="row" [hidden]="tab !== 'video'">
   <div *ngIf="canEdit" class="col-12">
-    <button class="btn btn-link text-muted" (click)="changeTab('info')"><h3>< Song info</h3></button>
+    <button class="btn btn-link text-muted" (click)="changeTab('info')"><h3>< Informações</h3></button>
   </div>
   <div class="col-12 text-center">
     <h1>
@@ -50,15 +50,15 @@
   </div>
   <div class="btn-group" role="group" *ngIf="canEdit">
     <button type="button" class="btn btn-dark" (click)="saveMarker()">
-      <span class="fas fa-map-pin"></span> {{ hasMarker ? 'Save marker' : 'Add marker' }}</button>
+      <span class="fas fa-map-pin"></span> {{ hasMarker ? 'Salvar marcador' : 'Adicionar marcador' }}</button>
     <button type="button" class="btn btn-danger" (click)="deleteMarker()" [disabled]="!selectedMarkerTime"><span class="fas fa-trash"></span></button>
-    <button type="button" class="btn btn-dark" (click)="goToPreviousMarker()"><span class="fas fa-angle-left"></span> Previous marker</button>
-    <button type="button" class="btn btn-dark" (click)="goToNextMarker()">Next marker <span class="fas fa-angle-right"></span></button>
+    <button type="button" class="btn btn-dark" (click)="goToPreviousMarker()"><span class="fas fa-angle-left"></span> Marcador anterior</button>
+    <button type="button" class="btn btn-dark" (click)="goToNextMarker()">Próximo marcador <span class="fas fa-angle-right"></span></button>
     <button type="button" class="btn btn-dark" (click)="isLooping = !isLooping"
-            [ngClass]="{'active': isLooping}"><span class="fas fa-sync-alt"></span> Loop region</button>
+            [ngClass]="{'active': isLooping}"><span class="fas fa-sync-alt"></span> {{ isLooping ? 'Desativar loop' : 'Ativar loop'}}</button>
     <button type="button" class="btn btn-dark" (click)="startCopy()"
-            [ngClass]="{'active': isCopying}"><span class="fas fa-clone"></span> {{ isCopying ? 'Cancel copy' : 'Copy' }}</button>
-    <button type="button" class="btn btn-warning" (click)="saveSong()"><span class="fa fa-save"></span> Save</button>
+            [ngClass]="{'active': isCopying}"><span class="fas fa-clone"></span> {{ isCopying ? 'Cancelar cópia' : 'Copiar' }}</button>
+    <button type="button" class="btn btn-warning" (click)="saveSong()"><span class="fa fa-save"></span> Salvar</button>
   </div>
   <div class="col-12 mt-2">
     <div class="alert alert-secondary" role="alert" [hidden]="!isCopying">
@@ -68,7 +68,7 @@
   </div>
   <div class="btn-group" role="group" *ngIf="!canEdit">
     <button type="button" class="btn btn-dark" (click)="isLooping = !isLooping"
-            [ngClass]="{'active': isLooping}"><span class="fas fa-sync-alt"></span> Loop region</button>
+            [ngClass]="{'active': isLooping}"><span class="fas fa-sync-alt"></span> {{ isLooping ? 'Desativar loop' : 'Ativar loop'}}</button>
   </div>
   <div class="timeline-wrap">
     <div class="custom-slider" [hidden]="!isLooping">
@@ -92,23 +92,23 @@
         <ng-template #popContent>
           <div>
             <div class="form-group">
-              <label for="noteInput">Note</label>
+              <label for="noteInput">Acorde/Nota</label>
               <input (keydown)="closePopover(markerTime, $event)" class="form-control" type="text" id="noteInput"
                      placeholder="Note" [(ngModel)]="marker.note" autofocus/>
             </div>
             <div class="form-group">
-              <label for="descInput">Desc</label>
+              <label for="descInput">Descrição</label>
               <input (keydown)="closePopover(markerTime, $event)" class="form-control" type="text" id="descInput"
                      placeholder="Description" [(ngModel)]="marker.description"/>
             </div>
             <div class="form-group">
-              <label for="colorInput">Color</label>
+              <label for="colorInput">Cor</label>
               <input id="colorInput" class="form-control" [style.background]="marker.color" [cpPresetColors]="presetColors"
                      [cpAlphaChannel]="'disabled'" [cpOutputFormat]="'hex'" [cpPresetLabel]="'Cores utilizadas'"
                      [cpPosition]="'right'" [cpPositionOffset]="'-500%'" [cpDisableInput]="true"
                      [(colorPicker)]="marker.color" (colorPickerChange)="marker.color=$event; updatePresetColors()"/>
             </div>
-            <button (click)="closePopover(markerTime)" class="btn btn-danger btn-sm">Close</button>
+            <button (click)="closePopover(markerTime)" class="btn btn-danger btn-sm">Fechar</button>
           </div>
         </ng-template>
       </div>

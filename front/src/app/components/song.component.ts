@@ -62,7 +62,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
   loopingRegion = {startTime: 0, endTime: Number.POSITIVE_INFINITY};
   isCopying = false;
   copyMarkers = {start: null, end: null};
-  copyMessage = 'Select the first marker you want to copy and press ';
+  copyMessage = 'Selecione o primeiro marcador que você deseja copiar e pressione ';
 
   // config
   sliderOptions: Options = {
@@ -124,7 +124,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     if (!this.song._id) {
       this.songSubscription = this.songService.create(songClone).pipe(first()).subscribe(
         song => {
-          this.alertService.success('Saved song with success.', true);
+          this.alertService.success('A cifra foi salva com sucesso.', true);
           console.log('Created');
           this.router.navigate(['/songs/', song._id]);
         },
@@ -134,7 +134,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     } else {
       this.songSubscription = this.songService.update(songClone).pipe(first()).subscribe(
         song => {
-          this.alertService.success('Saved song with success.', false);
+          this.alertService.success('A cifra foi salva com sucesso.', false);
           console.log('Updated');
         },
         error => {
@@ -395,7 +395,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     if (this.isCopying) {
       this.isCopying = false;
       this.copyMarkers = {start: null, end: null};
-      this.copyMessage = 'Select the first marker you want to copy and press ';
+      this.copyMessage = 'Selecione o primeiro marcador que você deseja copiar e pressione ';
     } else {
       this.isCopying = true;
     }
@@ -406,10 +406,10 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
 
     if (!this.copyMarkers.start) {
       this.copyMarkers.start = this.selectedMarkerTime;
-      this.copyMessage = 'Select the last marker you want to copy and press ';
+      this.copyMessage = 'Selecione o último marcador que você deseja copiar e pressione ';
     } else if (!this.copyMarkers.end && this.selectedMarkerTime !== this.copyMarkers.start) {
       this.copyMarkers.end = this.selectedMarkerTime;
-      this.copyMessage = 'Leave the player at the time you want to paste at and press ';
+      this.copyMessage = 'Deixe o vídeo no tempo que você deseja colar os marcadores e pressione ';
     } else if (this.copyMarkers.start && this.copyMarkers.end) {
       this.paste();
     }
@@ -436,7 +436,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
 
     this.isCopying = false;
     this.copyMarkers = {start: null, end: null};
-    this.copyMessage = 'Select the first marker you want to copy and press ';
+    this.copyMessage = 'Selecione o primeiro marcador que você deseja copiar e pressione ';
   }
 
   sortArrayAsc(array) {
@@ -518,7 +518,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     this.song.title = this.song.title.trim();
     this.song.artist = this.song.artist.trim();
     if (this.song.videoUrl.length < 10 || this.song.title.length < 1 || this.song.artist.length < 1) {
-      this.alertService.error('All fields are required.');
+      this.alertService.error('Todos os campos são obrigatórios.');
       this.tab = 'info';
       return false;
     }
@@ -534,7 +534,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     } else {
       const videoId = this.getVideoId(this.song.videoUrl);
       if (!videoId) {
-        this.alertService.error('Invalid YouTube URL.');
+        this.alertService.error('Link do YouTube inválido.');
         return;
       }
 

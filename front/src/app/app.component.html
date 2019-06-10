@@ -1,14 +1,14 @@
 <!-- nav -->
 <nav class="navbar navbar-expand navbar-dark bg-dark">
   <div class="navbar-nav" *ngIf="currentUser">
-    <a class="nav-item nav-link" routerLink="/">Home</a>
-    <a class="nav-item nav-link" routerLink="/songs/new">New song</a>
-    <a class="nav-item nav-link" (click)="logout()">Logout</a>
+    <a class="nav-item nav-link" routerLink="/">Início</a>
+    <a class="nav-item nav-link" routerLink="/songs/new">Nova cifra</a>
+    <a class="nav-item nav-link" style="cursor: pointer" (click)="logout()">Sair</a>
   </div>
   <div class="navbar-nav" *ngIf="!currentUser">
-    <a class="nav-item nav-link" routerLink="/">Home</a>
-    <a class="nav-item nav-link" routerLink="/login">Login</a>
-    <a class="nav-item nav-link" routerLink="/register">Register</a>
+    <a class="nav-item nav-link" routerLink="/">Início</a>
+    <a class="nav-item nav-link" routerLink="/login">Entrar</a>
+    <a class="nav-item nav-link" routerLink="/register">Cadastrar</a>
   </div>
 </nav>
 
