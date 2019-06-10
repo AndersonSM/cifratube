@@ -92,13 +92,13 @@
         <ng-template #popContent>
           <div>
             <div class="form-group">
-              <label for="noteInput">Acorde/Nota</label>
-              <input (keydown)="closePopover(markerTime, $event)" class="form-control" type="text" id="noteInput"
-                     placeholder="Note" [(ngModel)]="marker.note" autofocus/>
+              <label for="noteInput-{{markerTime}}">Acorde/Nota</label>
+              <input class="form-control" type="text" id="noteInput-{{markerTime}}"
+                     placeholder="Note" [(ngModel)]="marker.note"/>
             </div>
             <div class="form-group">
               <label for="descInput">Descrição</label>
-              <input (keydown)="closePopover(markerTime, $event)" class="form-control" type="text" id="descInput"
+              <input class="form-control" type="text" id="descInput"
                      placeholder="Description" [(ngModel)]="marker.description"/>
             </div>
             <div class="form-group">
@@ -114,6 +114,8 @@
       </div>
     </div>
   </div>
+  <ng-keyboard-shortcuts [shortcuts]="shortcuts"></ng-keyboard-shortcuts>
+  <ng-keyboard-shortcuts-help [key]="'f1'" [title]="Atalhos"></ng-keyboard-shortcuts-help>
   <div class="col-12 text-center">
     <youtube-player
       [videoId]="song.videoId"

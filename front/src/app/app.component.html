@@ -2,7 +2,7 @@
 <nav class="navbar navbar-expand navbar-dark bg-dark">
   <div class="navbar-nav" *ngIf="currentUser">
     <a class="nav-item nav-link" routerLink="/">Início</a>
-    <a class="nav-item nav-link" routerLink="/songs/new">Nova cifra</a>
+    <a class="nav-item nav-link" routerLink="/songs/new">Criar cifra</a>
     <a class="nav-item nav-link" style="cursor: pointer" (click)="logout()">Sair</a>
   </div>
   <div class="navbar-nav" *ngIf="!currentUser">

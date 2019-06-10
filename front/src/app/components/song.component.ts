@@ -15,13 +15,13 @@ import { Song } from '../models';
 import { first } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { Options } from 'ng5-slider';
+import { ShortcutInput, KeyboardShortcutsHelpComponent, AllowIn } from 'ng-keyboard-shortcuts';
 
 const HALF_BAR_TIME = 2; // sec
 const TOOLTIP_WIDTH = 50; // ps
 const TIME_INDICATOR_LEFT_OFFSET = 7.5; // px
 const UPDATE_INTERVAL = 100; // 100 ms
 const DEFAULT_MARKER_COLOR = '#fcc107';
-const SELECTED_MARKER_COLOR = '#fcc107';
 
 @Component({
   selector: 'app-song-component',
@@ -35,6 +35,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
   @ViewChild('timeTooltip', {read: ElementRef}) timeTooltipElem: ElementRef;
   @ViewChild('contentBar', {read: ElementRef}) chordBarElem: ElementRef;
   @ViewChild('currentTime', {read: ElementRef}) currentTimeElem: ElementRef;
+  @ViewChild(KeyboardShortcutsHelpComponent) private shortcutsModal: KeyboardShortcutsHelpComponent;
 
   // timeline state
   private infoIntervalId;
@@ -74,6 +75,8 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     }
   };
   halfBarTime = HALF_BAR_TIME;
+  shortcuts: ShortcutInput[] = [];
+  SELECTED_MARKER_COLOR = 'rgb(52, 58, 64)';
 
   constructor(
     private route: ActivatedRoute,
@@ -112,6 +115,94 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     this.song.artist = '';
     this.song.videoUrl = '';
     this.song.markers = {};
+
+    this.shortcuts.push(
+      {
+        key: 'cmd + right',
+        label: 'Marcadores',
+        description: 'Selecionar o próximo marcador',
+        preventDefault: true,
+        allowIn: [AllowIn.Textarea, AllowIn.Input],
+        command: e => this.goToNextMarker()
+      },
+      {
+        key: 'cmd + left',
+        preventDefault: true,
+        label: 'Marcadores',
+        description: 'Selecionar o marcador anterior',
+        allowIn: [AllowIn.Textarea, AllowIn.Input],
+        command: e => this.goToPreviousMarker()
+      },
+      {
+        key: 'cmd + S',
+        preventDefault: true,
+        label: 'Geral',
+        description: 'Salvar a cifra',
+        allowIn: [AllowIn.Textarea, AllowIn.Input],
+        command: e => this.saveSong()
+      },
+      {
+        key: 'cmd + L',
+        preventDefault: true,
+        label: 'Geral',
+        description: 'Ativar/Desativar loop',
+        allowIn: [AllowIn.Textarea, AllowIn.Input],
+        command: e => this.isLooping = !this.isLooping
+      },
+      {
+        key: 'cmd + D',
+        preventDefault: true,
+        label: 'Marcadores',
+        description: 'Excluir o marcador selecionado',
+        allowIn: [AllowIn.Textarea, AllowIn.Input],
+        command: e => this.deleteMarker()
+      },
+      {
+        key: 'cmd + space',
+        preventDefault: true,
+        allowIn: [AllowIn.Textarea, AllowIn.Input],
+        label: 'Player',
+        description: 'Parar/Continuar reprodução do vídeo se um campo de texto estiver selecionado',
+        command: e => {
+          if (!this.player) { return; }
+          this.player.getPlayerState() === YT.PlayerState.PLAYING ? this.player.pauseVideo() : this.player.playVideo();
+        }
+      },
+      {
+        key: 'cmd + A',
+        preventDefault: true,
+        label: 'Marcadores',
+        description: 'Adicionar marcador',
+        command: e => this.saveMarker()
+      },
+      {
+        key: 'escape',
+        preventDefault: true,
+        allowIn: [AllowIn.Textarea, AllowIn.Input],
+        label: 'Geral',
+        description: 'Fechar menus',
+        command: e => {
+          this.closeAllPopovers();
+          this.shortcutsModal.hide();
+        }
+      },
+      {
+        key: 'enter',
+        allowIn: [AllowIn.Textarea, AllowIn.Input],
+        label: 'Marcadores',
+        description: 'Fechar menu de marcador',
+        command: e => this.closeAllPopovers()
+      },
+      {
+        key: 'space',
+        preventDefault: true,
+        label: 'Player',
+        description: 'Parar/Continuar reprodução do vídeo',
+        command: e => {
+          if (!this.player) { return; }
+          this.player.getPlayerState() === YT.PlayerState.PLAYING ? this.player.pauseVideo() : this.player.playVideo();
+        }
+      });
   }
 
   ngAfterViewChecked() {
@@ -119,7 +210,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
   }
 
   saveSong() {
-    if (!this.verifySongInfo()) { return; }
+    if (!this.verifySongInfo() || !this.canEdit) { return; }
     const songClone = this.cloneSong();
     if (!this.song._id) {
       this.songSubscription = this.songService.create(songClone).pipe(first()).subscribe(
@@ -203,9 +294,21 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     if (this.song.markers[time] && this.canEdit && this.song.markers[time].popover) {
       this.song.markers[time].popover.open();
     }
+
+    // note input focus
+    setTimeout(() => {
+      const noteInputElement = document.getElementById('noteInput-' + time);
+      if (noteInputElement) {
+        noteInputElement.focus({
+          preventScroll: true
+        });
+      }
+    }, 200);
   }
 
   saveMarker() {
+    if (!this.canEdit) { return; }
+
     const time = this.getCurrentTime();
     this.getMarkerTimelinePosition(time);
     this.song.markers[time] = this.marker;
@@ -214,7 +317,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
   }
 
   deleteMarker() {
-    if (!this.selectedMarkerTime) {
+    if (!this.selectedMarkerTime || !this.canEdit) {
       return;
     }
     this.closePopover(this.selectedMarkerTime);

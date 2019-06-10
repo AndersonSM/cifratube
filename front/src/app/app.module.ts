@@ -1,4 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
@@ -10,6 +11,8 @@ import { YoutubePlayerModule } from 'ngx-youtube-player';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Ng5SliderModule } from 'ng5-slider';
 import { ColorPickerModule } from 'ngx-color-picker';
+import { KeyboardShortcutsModule } from 'ng-keyboard-shortcuts';
+import { AutofocusModule } from 'angular-autofocus-fix';
 
 import { AlertComponent, SongComponent } from './components';
 import { ErrorInterceptor, JwtInterceptor } from './helpers';
@@ -30,6 +33,7 @@ import { OnCreateDirective } from './directives';
   ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     AppRoutingModule,
     YoutubePlayerModule,
     FormsModule,
@@ -37,7 +41,9 @@ import { OnCreateDirective } from './directives';
     HttpClientModule,
     NgbModule,
     Ng5SliderModule,
-    ColorPickerModule
+    ColorPickerModule,
+    AutofocusModule,
+    KeyboardShortcutsModule.forRoot()
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
