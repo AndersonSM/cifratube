@@ -2,6 +2,8 @@ const Songs = require('../models/songs');
 const RestHelper = require('../helpers/rest-helper');
 
 async function getLatestSongs(req, res) {
+    if (req.query.search) return getSongsByTitleOrArtist(req, res);
+
     var songs = await Songs.find({}).populate('author').sort({createdDate: -1}).limit(25).exec();
     if (songs)
         RestHelper.sendJsonResponse(res, 200, songs);
@@ -22,6 +24,20 @@ async function getSongById(req, res) {
 
 async function getSongsByUser(req, res) {
     var songs = await Songs.find({userId: req.params.id}).populate('author').exec();
+    if (songs)
+        RestHelper.sendJsonResponse(res, 200, songs);
+    else
+        RestHelper.sendErrorResponse(res, 500, "Couldn't get songs.");
+}
+
+async function getSongsByTitleOrArtist(req, res) {
+    var songs = await Songs.find(
+        {$or:
+            [
+                {title: new RegExp(req.query.search, 'i')},
+                {artist: new RegExp(req.query.search, 'i')}
+            ]
+        }).populate('author').exec();
     if (songs)
         RestHelper.sendJsonResponse(res, 200, songs);
     else
