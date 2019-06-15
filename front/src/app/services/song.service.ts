@@ -12,6 +12,10 @@ export class SongService {
     return this.http.get<Song[]>(`${environment.apiUrl}/songs`);
   }
 
+  search(query) {
+    return this.http.get<Song[]>(`${environment.apiUrl}/songs?search=${query}`);
+  }
+
   getById(id: string) {
     return this.http.get<Song>(`${environment.apiUrl}/songs/${id}`);
   }

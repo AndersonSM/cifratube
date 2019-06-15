@@ -1,7 +1,23 @@
-﻿<div *ngIf="currentUser">
-  <h1>Olá, {{currentUser.name}}!</h1>
+﻿<div class="row mb-5">
+  <div class="col-3"></div>
+  <div class="col-6">
+    <form (ngSubmit)="search()">
+      <div class="input-group">
+        <input type="text" class="form-control" [(ngModel)]="query" name="query" placeholder="Música ou artista"/>
+        <div class="input-group-append">
+          <button type="submit" class="btn btn-outline-dark">Pesquisar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="col-3"></div>
 </div>
-<h3>Cifras adicionadas recentemente:</h3>
+<div *ngIf="currentUser">
+  <h2>Olá, {{currentUser.name}}!</h2>
+</div>
+<h3 *ngIf="!searched && songs.length">Cifras adicionadas recentemente:</h3>
+<h3 *ngIf="searched && songs.length">Resultados encontrados:</h3>
+<h3 *ngIf="!songs.length">Nenhum resultado encontrado :(</h3>
 <ul>
   <li *ngFor="let song of songs">
     <a routerLink="/songs/{{song._id}}">{{song.title}} - {{song.artist}}</a>

@@ -9,7 +9,10 @@ import { SongService, AuthenticationService } from '../services';
 export class HomeComponent implements OnInit, OnDestroy {
   currentUser: User;
   currentUserSubscription: Subscription;
+  songSubscription: Subscription;
   songs: Song[] = [];
+  searched = false;
+  query = '';
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -26,11 +29,26 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.currentUserSubscription.unsubscribe();
+    this.songSubscription.unsubscribe();
   }
 
   private loadLatestSongs() {
-      this.songService.getLatest().pipe(first()).subscribe(songs => {
+    this.searched = false;
+    this.songSubscription = this.songService.getLatest().pipe(first()).subscribe(songs => {
           this.songs = songs;
       });
+  }
+
+  search() {
+    if (this.query.trim().length < 2) {
+      this.loadLatestSongs();
+      this.query = '';
+      return;
+    }
+
+    this.searched = true;
+    this.songSubscription = this.songService.search(this.query.trim()).pipe(first()).subscribe(songs => {
+        this.songs = songs;
+    });
   }
 }
