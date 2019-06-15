@@ -14,7 +14,7 @@ import { ColorPickerModule } from 'ngx-color-picker';
 import { KeyboardShortcutsModule } from 'ng-keyboard-shortcuts';
 import { AutofocusModule } from 'angular-autofocus-fix';
 
-import { AlertComponent, SongComponent } from './components';
+import { AlertComponent, SongComponent, HelpComponent } from './components';
 import { ErrorInterceptor, JwtInterceptor } from './helpers';
 import { HomeComponent } from './home';
 import { LoginComponent } from './login';
@@ -29,6 +29,7 @@ import { OnCreateDirective } from './directives';
     HomeComponent,
     LoginComponent,
     RegisterComponent,
+    HelpComponent,
     OnCreateDirective
   ],
   imports: [

@@ -1,14 +1,17 @@
 <!-- nav -->
 <nav class="navbar navbar-expand navbar-dark bg-dark">
+  <img src="../assets/img/logo.png" class="mr-3" style="max-height: 40px">
   <div class="navbar-nav" *ngIf="currentUser">
     <a class="nav-item nav-link" routerLink="/">Início</a>
     <a class="nav-item nav-link" routerLink="/songs/new">Criar cifra</a>
+    <a class="nav-item nav-link" routerLink="/help">Ajuda</a>
     <a class="nav-item nav-link" style="cursor: pointer" (click)="logout()">Sair</a>
   </div>
   <div class="navbar-nav" *ngIf="!currentUser">
     <a class="nav-item nav-link" routerLink="/">Início</a>
     <a class="nav-item nav-link" routerLink="/login">Entrar</a>
     <a class="nav-item nav-link" routerLink="/register">Cadastrar</a>
+    <a class="nav-item nav-link" routerLink="/help">Ajuda</a>
   </div>
 </nav>
 
