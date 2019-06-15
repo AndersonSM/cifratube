@@ -61,6 +61,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
   // tools state
   isLooping = true;
   loopingRegion = {startTime: 0, endTime: Number.POSITIVE_INFINITY};
+  isResetingLoop = false;
   isCopying = false;
   copyMarkers = {start: null, end: null};
   copyMessage = 'Selecione o primeiro marcador que você deseja copiar e pressione ';
@@ -331,7 +332,10 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     const timeToUse = time || this.getCurrentTime();
 
     if (this.isLooping && this.sliderOptions.ceil && (timeToUse < this.loopingRegion.startTime || timeToUse > this.loopingRegion.endTime)) {
-      this.goTo(this.loopingRegion.startTime);
+      if (!this.isResetingLoop) {
+        this.isResetingLoop = true;
+        this.goTo(this.loopingRegion.startTime);
+      }
       return;
     }
 
@@ -436,6 +440,7 @@ export class SongComponent implements AfterViewInit, OnInit, OnDestroy, AfterVie
     this.player.seekTo(Number(time), true);
     this.updateVisibleMarkers(time);
     this.verifyInfoToShow(Number(time));
+    this.isResetingLoop = false;
   }
 
   goToNextMarker() {
