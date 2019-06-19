@@ -19,7 +19,7 @@ OBS: O MongoDB deverá estar rodando na porta 27017.
 ## Instruções para fazer build (produção)
 1. Execute `ng build --prod` na pasta **front**.
 2. Antes de rodar o servidor, é necessário definir as seguintes variáveis de ambiente:  
-   `ENVIRONMENT=production`: Para determinar que é um ambiente de produção
+   `ENVIRONMENT=production`: Para determinar que é um ambiente de produção  
    `DB_CONNECTION_STRING=mongodb://...`: URL de conexão com o banco de dados
 3. Execute `node server.js` na raiz para rodar o servidor. O projeto ficara acessível na porta 8080, que foi definida como padrão.
 
